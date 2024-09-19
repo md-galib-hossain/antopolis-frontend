@@ -16,7 +16,7 @@ export default function Home() {
     { name: "PHOENIX", icon: "🦅", category: "Bird" },
     { name: "SPARROW", icon: "🐦", category: "Bird" },
   ];
-
+ 
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <div className="container mx-auto">
