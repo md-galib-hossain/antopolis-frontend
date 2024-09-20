@@ -11,7 +11,7 @@ import { useState } from "react";
 type HeaderProps = {
   categories: ICategory[];
   searchTerm: string;
-  handleSearchChange: () => void;
+  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isLoading: boolean;
   setCategory: (categoryId: string) => void;
 };
