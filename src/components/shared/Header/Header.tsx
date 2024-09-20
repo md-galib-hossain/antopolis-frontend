@@ -34,7 +34,7 @@ const Header = ({
 
   const handleResetCategory = () => {
     setSelectedCategory(null);
-    setCategory(""); // Reset to show all categories
+    setCategory("");
   };
 
   return (
