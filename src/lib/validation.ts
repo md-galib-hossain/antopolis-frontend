@@ -7,5 +7,5 @@ export const createCategorySchema = z.object({
 export const animalNameSchema = z.object({
     name: requiredString,
     category: requiredString,
-
+    image: z.any()
 })

@@ -13,21 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import uploadToImgBB from "@/utils/uploadToImgBB";
 import { z } from "zod";
 import { toast } from "sonner";
 import useCreateAnimal from "@/hooks/useCreateAnimal";
 import { animalNameSchema } from "@/lib/validation";
 import { ICategory } from "@/types";
-
-
+import { uploadToImgBB } from "@/utils/uploadToImgBB";
 
 type FormValues = {
   categories: ICategory[];
   name: string;
   category: string;
-  animalImg: string; 
-  animalImgFile?: File | null; 
+  animalImg: string;
+  image?: File | null;
 };
 
 const AddAnimalModal = ({
@@ -48,8 +46,8 @@ const AddAnimalModal = ({
     defaultValues: {
       name: "",
       category: "",
-      animalImg: "", 
-      animalImgFile: null, 
+      animalImg: "",
+      image: null,
     },
   });
 
@@ -57,20 +55,20 @@ const AddAnimalModal = ({
     try {
       let animalImgUrl = "";
 
-      if (data.animalImgFile) {
-        animalImgUrl = (await uploadToImgBB(data.animalImgFile)) as string;
+      if (data.image) {
+        animalImgUrl = (await uploadToImgBB(data.image)) as string;
       }
-
+console.log(data)
       const animalData = {
         ...data,
         animalImg: animalImgUrl,
       };
 
-      delete animalData.animalImgFile;
+      delete animalData.image;
 
       console.log(animalData);
       toast("Animal added");
-      createAnimal(animalData); 
+      createAnimal(animalData);
       setShowAnimalModal(false);
       reset();
     } catch (error) {
@@ -136,20 +134,21 @@ const AddAnimalModal = ({
           <div>
             <Controller
               control={control}
-              name="animalImgFile"
-              render={({ field }) => (
+              name="image"
+              render={({ field: { onChange, value, ...field } }) => (
                 <>
                   <Input
-                    id="animalImage"
+                    {...field}
+                    id="image"
                     type="file"
                     className="bg-secondary border-0"
                     onChange={(e) => {
                       const file = e.target.files?.[0] || null;
-                      setValue("animalImgFile", file);
+                      onChange(file); // Update the field value directly
                     }}
                   />
-                  {errors.animalImgFile && (
-                    <p className="text-red-500">{errors.animalImgFile.message}</p>
+                  {errors.image && (
+                    <p className="text-red-500">{errors.image.message}</p>
                   )}
                 </>
               )}
