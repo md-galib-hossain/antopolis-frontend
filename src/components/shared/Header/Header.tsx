@@ -7,52 +7,76 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ICategory } from "@/types";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
+
 type HeaderProps = {
   categories: ICategory[];
   searchTerm: string;
   handleSearchChange: () => void;
   isLoading: boolean;
-  setCategory: ()=>void
+  setCategory: (categoryId: string) => void;
 };
 
 const Header = ({
   categories,
   searchTerm,
   handleSearchChange,
-  isLoading,setCategory
-}: any) => {
+  isLoading,
+  setCategory,
+}: HeaderProps) => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showAnimalModal, setShowAnimalModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const handleSetCategory = (category: ICategory) => {
+    setSelectedCategory(category.name);
+    setCategory(category._id);
+  };
+
+  const handleResetCategory = () => {
+    setSelectedCategory(null);
+    setCategory(""); // Reset to show all categories
+  };
+
   return (
     <div className="flex flex-col-reverse md:flex-row gap-4 justify-between mb-8 items-center">
       {/* Category Buttons */}
       <div className="space-x-4 flex flex-wrap">
         {isLoading
-          ? [1,2].map((el:number)=>(
-            <Skeleton key={el}
-            className="w-[120px] h-[36px] rounded-full bg-gray-700"
-          />
-          ))
+          ? [1, 2].map((el) => (
+              <Skeleton key={el} className="w-[120px] h-[36px] rounded-full bg-gray-700" />
+            ))
           : categories.map((category: ICategory) => (
               <Button
-                key={category.name}
-                onClick={()=> setCategory(category._id)}
+                key={category._id}
+                onClick={() => handleSetCategory(category)}
                 variant="outline"
                 className={`rounded-full px-4 py-2 text-sm font-medium border-red-500 text-red-500 bg-transparent hover:bg-transparent hover:border-green-500 hover:text-green-500 transition-colors duration-300 ease-in-out`}
               >
                 {category.name}
               </Button>
             ))}
+
+        {selectedCategory && (
+          <Button
+            variant="outline"
+            className="rounded-full px-4 py-2 text-sm font-medium border-blue-500 text-blue-500 bg-transparent hover:bg-transparent hover:border-green-500 hover:text-green-500 transition-colors duration-300 ease-in-out"
+            onClick={handleResetCategory}
+          >
+            Reset
+          </Button>
+        )}
       </div>
-      {/* search bar */}
+
+      {/* Search Bar */}
       <div>
         <Input
-          placeholder="Search animals"
+          placeholder={"Search animals "+(selectedCategory ? `in ${selectedCategory}`: "")}
           value={searchTerm}
           onChange={handleSearchChange}
           className="justify-center w-72 hidden lg:block border rounded-full bg-transparent placeholder:text-white"
         />
       </div>
+
       {/* Add Buttons */}
       <div className="flex space-x-4">
         <Button
@@ -64,7 +88,7 @@ const Header = ({
           Add Animal
         </Button>
         <AddAnimalModal
-        categories={categories}
+          categories={categories}
           showAnimalModal={showAnimalModal}
           setShowAnimalModal={setShowAnimalModal}
         />
