@@ -1,32 +1,159 @@
 import React from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import uploadToImgBB from "@/utils/uploadToImgBB";
+import { z } from "zod";
+import { toast } from "sonner";
+import useCreateAnimal from "@/hooks/useCreateAnimal";
+import { animalNameSchema } from "@/lib/validation";
+import { ICategory } from "@/types";
 
-const AddAnimalModal = ({ showAnimalModal, setShowAnimalModal }: any) => {
+
+
+type FormValues = {
+  categories: ICategory[];
+  name: string;
+  category: string;
+  animalImg: string; 
+  animalImgFile?: File | null; 
+};
+
+const AddAnimalModal = ({
+  categories,
+  showAnimalModal,
+  setShowAnimalModal,
+}: any) => {
+  const { mutate: createAnimal } = useCreateAnimal();
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(animalNameSchema),
+    defaultValues: {
+      name: "",
+      category: "",
+      animalImg: "", 
+      animalImgFile: null, 
+    },
+  });
+
+  const handleFormSubmit = async (data: FormValues) => {
+    try {
+      let animalImgUrl = "";
+
+      if (data.animalImgFile) {
+        animalImgUrl = (await uploadToImgBB(data.animalImgFile)) as string;
+      }
+
+      const animalData = {
+        ...data,
+        animalImg: animalImgUrl,
+      };
+
+      delete animalData.animalImgFile;
+
+      console.log(animalData);
+      toast("Animal added");
+      createAnimal(animalData); 
+      setShowAnimalModal(false);
+      reset();
+    } catch (error) {
+      toast("Could not create animal");
+      console.error(error);
+    }
+  };
+
   return (
     <Dialog open={showAnimalModal} onOpenChange={setShowAnimalModal}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Animal</DialogTitle>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit(handleFormSubmit)}>
           <div>
-            <Input id="animalName" className="bg-secondary border-0 font-semibold text-black" placeholder="Animal Name"/>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field }) => (
+                <>
+                  <Input
+                    id="name"
+                    {...field}
+                    placeholder="Animal Name"
+                    className="bg-secondary border-0 font-semibold text-black"
+                  />
+                  {errors.name && (
+                    <p className="text-red-500">{errors.name.message}</p>
+                  )}
+                </>
+              )}
+            />
           </div>
           <div>
-            <Label htmlFor="animalImage">Image</Label>
-            <div className="flex">
-              <Input
-                id="animalImage"
-                type="file"
-                className="bg-secondary border-0"
-              />
-              <Button variant="secondary" className="ml-2">
-                Upload
-              </Button>
-            </div>
+            <Controller
+              control={control}
+              name="category"
+              render={({ field }) => (
+                <>
+                  <Select {...field} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full bg-secondary border-0 text-black">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Categories</SelectLabel>
+                        {categories?.map((category: ICategory) => (
+                          <SelectItem key={category._id} value={category._id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  {errors.category && (
+                    <p className="text-red-500">{errors.category.message}</p>
+                  )}
+                </>
+              )}
+            />
+          </div>
+          <div>
+            <Controller
+              control={control}
+              name="animalImgFile"
+              render={({ field }) => (
+                <>
+                  <Input
+                    id="animalImage"
+                    type="file"
+                    className="bg-secondary border-0"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setValue("animalImgFile", file);
+                    }}
+                  />
+                  {errors.animalImgFile && (
+                    <p className="text-red-500">{errors.animalImgFile.message}</p>
+                  )}
+                </>
+              )}
+            />
           </div>
           <Button type="submit" className="w-full">
             Create Animal
